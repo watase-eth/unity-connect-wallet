@@ -13,7 +13,7 @@ public class StartMenuManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        sdk = new ThirdwebSDK("mumbai");
+        sdk = new ThirdwebSDK("goerli");
     }
 
     void update()
@@ -30,7 +30,7 @@ public class StartMenuManager : MonoBehaviour
             .Connect(new WalletConnection()
             {
                 provider = WalletProvider.MetaMask,
-                chainId = 80001 // Switch the wallet Goerli on connection
+                chainId = 5 // Switch the wallet Goerli on connection
             });
 
         DisconnectedState.SetActive(false);
@@ -41,5 +41,28 @@ public class StartMenuManager : MonoBehaviour
             .Find("Address")
             .GetComponent<TMPro.TextMeshProUGUI>()
             .text = address;
+
+        string balance = await CheckBalance(address);
+
+        float balanceFloat = float.Parse(balance);
+
+        string balanceText =
+        balanceFloat > 0
+        ? "You own this NFT!"
+        : "You don't own this NFT yet!";
+
+        ConnectedState
+            .transform
+            .Find("NFT")
+            .GetComponent<TMPro.TextMeshProUGUI>()
+            .text = balanceText;
+    }
+
+    public async Task<string> CheckBalance(string address)
+    {
+        Contract contract = sdk.GetContract("0xd1b4Edf074a3c29FdA0F6fC5d5aF9613BAE39A5C");
+
+        string balance = await contract.Read<string>("balanceOf", address);
+        return balance;
     }
 }
